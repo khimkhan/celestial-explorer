@@ -5,13 +5,13 @@ import ConstellationGallery from "@/components/ConstellationGallery";
 export const Route = createFileRoute("/constellations")({
   head: () => ({
     meta: [
-      { title: "3D Constellation Star Map" },
+      { title: "3D Constellation Star Map | BR" },
       {
         name: "description",
         content:
           "Fly through a live 3D sky: real IAU stick figures and Bright Star positions for the constellations hosting confirmed exoplanets.",
       },
-      { property: "og:title", content: "3D Constellation Star Map" },
+      { property: "og:title", content: "3D Constellation Star Map | BR" },
       {
         property: "og:description",
         content:

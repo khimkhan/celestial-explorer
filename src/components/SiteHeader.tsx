@@ -10,7 +10,7 @@ export default function SiteHeader() {
         </div>
         <div className="min-w-0 text-left">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Exoplanet Detection
+            BR-Exoplanet Detection
           </h1>
           <p className="text-sm text-slate-400">
             NASA Exoplanet Archive data · educational detection simulation

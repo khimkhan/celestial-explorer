@@ -8,7 +8,7 @@ import PlanetDetailPage from "@/components/PlanetDetailPage";
 export const Route = createFileRoute("/planets/$slug")({
   head: ({ params }) => {
     const name = params.slug.replace(/-/g, " ");
-    const title = `${name} · Transit Analysis`;
+    const title = `${name} · Transit Analysis | BR`;
     const description = `Orbital telemetry, 3D orbit model and transit light-curve analysis for the confirmed exoplanet ${name}.`;
     return {
       meta: [

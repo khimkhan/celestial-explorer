@@ -9,13 +9,13 @@ import { usePlanetarySound } from "@/hooks/usePlanetarySound";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Exoplanet Detection" },
+      { title: "BR-Exoplanet Detection" },
       {
         name: "description",
         content:
           "Explore confirmed exoplanets in 3D, see their quick facts, and watch how transit detection finds them.",
       },
-      { property: "og:title", content: "Exoplanet Detection" },
+      { property: "og:title", content: "BR-Exoplanet Detection" },
       {
         property: "og:description",
         content:
