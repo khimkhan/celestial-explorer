@@ -2,18 +2,20 @@ import { useEffect } from 'react';
 import { usePlanetarySound } from '@/hooks/usePlanetarySound';
 import { Volume2, VolumeX } from 'lucide-react';
 
-// Ambient space drone. Starts automatically as soon as the app runs; if the
-// browser blocks autoplay, playback resumes on the first user interaction.
+// Ambient frequency track — "852 Hz 741 Hz" by Mellow Mind Collective.
+// Starts automatically as soon as the app runs; if the browser blocks
+// autoplay, playback resumes on the first user interaction (click / scroll /
+// keydown). Mounted once at the root so it persists across all pages.
 export default function AmbientSoundBar() {
   const { autoStart, start, stop, blocked, isPlaying } = usePlanetarySound();
 
   useEffect(() => {
-    autoStart({ period: 10 });
+    autoStart();
   }, [autoStart]);
 
   function toggle() {
     if (isPlaying) stop();
-    else start({ period: 10 });
+    else start();
   }
 
   return (
