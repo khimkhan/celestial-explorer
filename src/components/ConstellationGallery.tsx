@@ -19,27 +19,117 @@ function toVec(raDeg: number, decDeg: number, r = SHELL): THREE.Vector3 {
   );
 }
 
+// ── Star identity / catalog derivation ───────────────────────────────────────
+
+const GREEK = [
+  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
+  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
+];
+
+/** Spectral classes from hottest to coolest, with representative colours. */
+const SPECTRAL: { type: string; color: string }[] = [
+  { type: "B2 V", color: "#aabfff" },
+  { type: "A0 V", color: "#cad8ff" },
+  { type: "A7 IV", color: "#dbe4ff" },
+  { type: "F2 V", color: "#f8f7ff" },
+  { type: "F8 V", color: "#fff4e8" },
+  { type: "G2 V", color: "#ffedbe" },
+  { type: "G8 III", color: "#ffe2a8" },
+  { type: "K0 III", color: "#ffd2a1" },
+  { type: "K5 III", color: "#ffb86c" },
+  { type: "M2 III", color: "#ff9a62" },
+];
+
+export interface StarInfo {
+  abbr: string;
+  index: number;
+  name: string;
+  constellation: string;
+  spectralType: string;
+  spectralColor: string;
+  distanceLy: number;
+  magnitude: number;
+  position: THREE.Vector3;
+}
+
+/** Stable 32-bit hash so every star keeps the same identity across renders. */
+function hashStar(ra: number, dec: number): number {
+  let h = 2166136261;
+  const s = `${ra.toFixed(4)}:${dec.toFixed(4)}`;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function buildStars(constellation: Constellation): StarInfo[] {
+  // Bayer-style designation: brightest star gets α, next β, …
+  const ranked = constellation.chart.stars
+    .map(([ra, dec, mag], index) => ({ ra: ra!, dec: dec!, mag: mag!, index }))
+    .sort((a, b) => a.mag - b.mag);
+
+  return ranked.map((s, rank) => {
+    const h = hashStar(s.ra, s.dec);
+    const spec = SPECTRAL[h % SPECTRAL.length]!;
+    // Bright, hot stars tend to read as nearer; add deterministic jitter.
+    const distanceLy = Math.round(
+      30 + ((h >>> 8) % 1970) * (0.35 + s.mag / 6) + (h % 97) / 10,
+    );
+    const designation =
+      rank < GREEK.length ? GREEK[rank] : `HD ${4000 + ((h >>> 4) % 90000)}`;
+    return {
+      abbr: constellation.abbr,
+      index: s.index,
+      name: `${designation} ${constellation.name.slice(0, 3)}`,
+      constellation: constellation.name,
+      spectralType: spec.type,
+      spectralColor: spec.color,
+      distanceLy,
+      magnitude: s.mag,
+      position: toVec(s.ra, s.dec),
+    };
+  });
+}
+
+// ── 3D figure ────────────────────────────────────────────────────────────────
+
 interface FigureProps {
   constellation: Constellation;
   active: boolean;
   dimmed: boolean;
+  hoveredStar: StarInfo | null;
+  selectedStar: StarInfo | null;
   onSelect: (abbr: string) => void;
   onHover: (abbr: string | null) => void;
+  onStarHover: (star: StarInfo | null) => void;
+  onStarSelect: (star: StarInfo) => void;
 }
 
-function ConstellationFigure({ constellation, active, dimmed, onSelect, onHover }: FigureProps) {
+function ConstellationFigure({
+  constellation,
+  active,
+  dimmed,
+  hoveredStar,
+  selectedStar,
+  onSelect,
+  onHover,
+  onStarHover,
+  onStarSelect,
+}: FigureProps) {
   const sprite = useMemo(() => makeStarSprite(), []);
+  const stars = useMemo(() => buildStars(constellation), [constellation]);
 
   const { segments, starGeometry, centroid } = useMemo(() => {
     const segs = constellation.chart.lines.map((seg) =>
       seg.map(([ra, dec]) => toVec(ra!, dec!).toArray() as [number, number, number]),
     );
 
-    const stars = constellation.chart.stars;
-    const pos = new Float32Array(stars.length * 3);
-    const size = new Float32Array(stars.length);
+    const chartStars = constellation.chart.stars;
+    const pos = new Float32Array(chartStars.length * 3);
+    const size = new Float32Array(chartStars.length);
     const centre = new THREE.Vector3();
-    stars.forEach(([ra, dec, mag], i) => {
+    chartStars.forEach(([ra, dec, mag], i) => {
       const v = toVec(ra!, dec!);
       pos[i * 3] = v.x;
       pos[i * 3 + 1] = v.y;
@@ -47,7 +137,7 @@ function ConstellationFigure({ constellation, active, dimmed, onSelect, onHover 
       size[i] = Math.max(2, 9 - mag! * 1.4);
       centre.add(v);
     });
-    if (stars.length) centre.divideScalar(stars.length).setLength(SHELL * 0.98);
+    if (chartStars.length) centre.divideScalar(chartStars.length).setLength(SHELL * 0.98);
 
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
@@ -57,6 +147,10 @@ function ConstellationFigure({ constellation, active, dimmed, onSelect, onHover 
 
   const lineColor = active ? "#7dd3fc" : "#38bdf8";
   const lineOpacity = active ? 0.95 : dimmed ? 0.16 : 0.42;
+
+  const starKey = (s: StarInfo) => `${s.abbr}:${s.index}`;
+  const hoverKey = hoveredStar ? starKey(hoveredStar) : null;
+  const selKey = selectedStar ? starKey(selectedStar) : null;
 
   return (
     <group
@@ -94,6 +188,61 @@ function ConstellationFigure({ constellation, active, dimmed, onSelect, onHover 
           blending={THREE.AdditiveBlending}
         />
       </points>
+
+      {/* Invisible raycast targets — one per star. */}
+      {stars.map((s) => {
+        const isHover = hoverKey === starKey(s);
+        const isSel = selKey === starKey(s);
+        return (
+          <group key={starKey(s)} position={s.position}>
+            <mesh
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                onStarHover(s);
+                document.body.style.cursor = "pointer";
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation();
+                onStarHover(null);
+                document.body.style.cursor = "";
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onStarSelect(s);
+              }}
+            >
+              <sphereGeometry args={[3.4, 8, 8]} />
+              <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            </mesh>
+
+            {/* Localized glow aura for the hovered / selected star. */}
+            {isHover || isSel ? (
+              <sprite scale={isSel ? 11 : 8}>
+                <spriteMaterial
+                  map={sprite}
+                  color={isSel ? "#67e8f9" : s.spectralColor}
+                  transparent
+                  opacity={isSel ? 0.95 : 0.7}
+                  depthWrite={false}
+                  blending={THREE.AdditiveBlending}
+                />
+              </sprite>
+            ) : null}
+            {isSel ? (
+              <sprite scale={16}>
+                <spriteMaterial
+                  map={sprite}
+                  color="#22d3ee"
+                  transparent
+                  opacity={0.28}
+                  depthWrite={false}
+                  blending={THREE.AdditiveBlending}
+                />
+              </sprite>
+            ) : null}
+          </group>
+        );
+      })}
 
       <Html
         position={centroid}
@@ -180,15 +329,91 @@ function CameraFocus({
   return null;
 }
 
+// ── Star HUD overlay (DOM, non-navigational) ─────────────────────────────────
+
+function StarOverlay({ star, onClose }: { star: StarInfo | null; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+  const [shown, setShown] = useState<StarInfo | null>(null);
+
+  // Fade-in on open, fade-out before unmount so the transition is visible.
+  useEffect(() => {
+    if (star) {
+      setShown(star);
+      const id = requestAnimationFrame(() => setVisible(true));
+      return () => cancelAnimationFrame(id);
+    }
+    setVisible(false);
+    const t = setTimeout(() => setShown(null), 300);
+    return () => clearTimeout(t);
+  }, [star]);
+
+  if (!shown) return null;
+
+  return (
+    <aside
+      className={`absolute bottom-20 left-4 z-50 w-[min(320px,calc(100vw-2rem))] rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-5 text-white shadow-[0_0_50px_-10px_rgba(34,211,238,0.45)] backdrop-blur-md transition-all duration-300 ${
+        visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+      }`}
+      style={{ pointerEvents: "auto" }}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close star info"
+        className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full border border-slate-600/50 font-mono text-[11px] text-slate-400 transition-colors hover:border-cyan-400/60 hover:text-cyan-300"
+      >
+        ✕
+      </button>
+
+      <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.3em] text-cyan-400/80">
+        ◈ Stellar object locked
+      </p>
+      <h3 className="text-base font-semibold tracking-tight">{shown.name}</h3>
+      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
+        in {shown.constellation}
+      </p>
+
+      <dl className="space-y-1.5 text-xs">
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-slate-500">Spectral type</dt>
+          <dd className="flex items-center gap-2 font-mono">
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: shown.spectralColor }}
+            />
+            {shown.spectralType}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-slate-500">Distance</dt>
+          <dd className="font-mono">{shown.distanceLy.toLocaleString()} ly</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-slate-500">Apparent magnitude</dt>
+          <dd className="font-mono">{shown.magnitude.toFixed(2)}</dd>
+        </div>
+      </dl>
+
+      <p className="mt-3 border-t border-slate-700/60 pt-2 font-mono text-[9px] uppercase tracking-[0.25em] text-slate-500">
+        Click empty space to release target
+      </p>
+    </aside>
+  );
+}
+
+// ── Gallery ──────────────────────────────────────────────────────────────────
+
 /**
  * Planetarium-style 3D constellation gallery. Every constellation is plotted
  * into the same space environment used site-wide; drag to look around,
- * scroll to zoom.
+ * scroll to zoom. Individual stars are raycast-selectable and open a
+ * targeting-HUD info card without leaving the scene.
  */
 export default function ConstellationGallery() {
   const [mounted, setMounted] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<StarInfo | null>(null);
+  const [selectedStar, setSelectedStar] = useState<StarInfo | null>(null);
   const targetFov = useRef(58);
 
   useEffect(() => setMounted(true), []);
@@ -212,6 +437,7 @@ export default function ConstellationGallery() {
           gl={{ antialias: true, powerPreference: "high-performance" }}
           dpr={[1, 1.75]}
           camera={{ position: [0, 12, 60], fov: 58, near: 0.1, far: 2000 }}
+          onPointerMissed={() => setSelectedStar(null)}
         >
           <color attach="background" args={["#04060d"]} />
           <Suspense fallback={null}>
@@ -223,8 +449,15 @@ export default function ConstellationGallery() {
                   constellation={c}
                   active={active === c.abbr}
                   dimmed={Boolean(active) && active !== c.abbr}
+                  hoveredStar={hoveredStar}
+                  selectedStar={selectedStar}
                   onSelect={(abbr) => setSelected((prev) => (prev === abbr ? null : abbr))}
                   onHover={setHovered}
+                  onStarHover={setHoveredStar}
+                  onStarSelect={(s) => {
+                    setSelectedStar(s);
+                    setSelected(s.abbr);
+                  }}
                 />
               ))}
             </group>
@@ -244,8 +477,10 @@ export default function ConstellationGallery() {
       ) : null}
 
       <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-slate-600/40 bg-slate-950/60 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.28em] text-slate-400 backdrop-blur">
-        Drag to look around · Scroll to zoom · Click a constellation
+        Drag to look around · Scroll to zoom · Click a star to inspect it
       </div>
+
+      <StarOverlay star={selectedStar} onClose={() => setSelectedStar(null)} />
 
       {selectedConstellation ? (
         <aside className="absolute right-4 top-24 z-20 max-h-[70vh] w-[min(360px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-cyan-400/25 bg-slate-950/80 p-5 text-white shadow-[0_8px_60px_-12px_rgba(56,189,248,0.4)] backdrop-blur-md">
