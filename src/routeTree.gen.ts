@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConstellationsRouteImport } from './routes/constellations'
+import { Route as PlanetsSlugRouteImport } from './routes/planets.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConstellationsRoute = ConstellationsRouteImport.update({
+  id: '/constellations',
+  path: '/constellations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanetsSlugRoute = PlanetsSlugRouteImport.update({
+  id: '/planets/$slug',
+  path: '/planets/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/constellations': typeof ConstellationsRoute
+  '/planets/$slug': typeof PlanetsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/constellations': typeof ConstellationsRoute
+  '/planets/$slug': typeof PlanetsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/constellations': typeof ConstellationsRoute
+  '/planets/$slug': typeof PlanetsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/constellations' | '/planets/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/constellations' | '/planets/$slug'
+  id: '__root__' | '/' | '/constellations' | '/planets/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConstellationsRoute: typeof ConstellationsRoute
+  PlanetsSlugRoute: typeof PlanetsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/constellations': {
+      id: '/constellations'
+      path: '/constellations'
+      fullPath: '/constellations'
+      preLoaderRoute: typeof ConstellationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planets/$slug': {
+      id: '/planets/$slug'
+      path: '/planets/$slug'
+      fullPath: '/planets/$slug'
+      preLoaderRoute: typeof PlanetsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConstellationsRoute: ConstellationsRoute,
+  PlanetsSlugRoute: PlanetsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
