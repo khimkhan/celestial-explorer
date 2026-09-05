@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Telescope, Sparkles } from 'lucide-react';
+import { Telescope, Sparkles, History } from 'lucide-react';
 
 export default function SiteHeader() {
   return (
@@ -26,6 +26,14 @@ export default function SiteHeader() {
           activeProps={{ className: 'border-violet-500/40 text-violet-200' }}
         >
           Catalog
+        </Link>
+        <Link
+          to="/timeline"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-300 backdrop-blur-md transition-colors hover:border-amber-500/40 hover:text-white"
+          activeProps={{ className: 'border-amber-500/40 text-amber-200' }}
+        >
+          <History className="h-3.5 w-3.5" />
+          Timeline
         </Link>
         <Link
           to="/constellations"
