@@ -45,7 +45,7 @@ export default function HomePage({ planets, onSelect }: Props) {
         <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-5xl">
           Explore Worlds Beyond Our Sun
         </h2>
-        <AmbientSoundBar />
+        
       </section>
 
       <section className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
