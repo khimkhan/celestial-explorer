@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { CatalogPlanet } from '@/lib/planetLore';
 import { classifyPlanet, toTarget } from '@/lib/catalogQuery';
 import LiveMiniOrbit from './LiveMiniOrbit';
-import AmbientSoundBar from './AmbientSoundBar';
+
 import OrbitMap2D from './OrbitMap2D';
 import HowDetectionWorks from './HowDetectionWorks';
 import SearchBar from './SearchBar';
