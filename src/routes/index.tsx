@@ -1,10 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { catalogQueryOptions } from "@/lib/catalogQuery";
 import SiteHeader from "@/components/SiteHeader";
 import HomePage from "@/components/HomePage";
-import { usePlanetarySound } from "@/hooks/usePlanetarySound";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,12 +30,6 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data: planets } = useSuspenseQuery(catalogQueryOptions());
   const navigate = useNavigate();
-  const { autoStart } = usePlanetarySound();
-
-  useEffect(() => {
-    autoStart({ period: 10 });
-  }, [autoStart]);
-
   return (
     <div className="relative min-h-screen text-white">
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">

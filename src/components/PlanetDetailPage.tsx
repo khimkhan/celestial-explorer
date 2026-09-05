@@ -15,7 +15,6 @@ import { buildDetectionReport, buildParameterRows, STATUS_STYLE } from "@/lib/de
 import { setSimSettings, useSimSettings } from "@/lib/simSettings";
 import OrbitalAnimation from "./OrbitalAnimation";
 import SimulationControls from "./SimulationControls";
-import PlanetSoundPanel from "./PlanetSoundPanel";
 import LightCurveStudio from "./LightCurveStudio";
 import DetectionPipeline from "./DetectionPipeline";
 import DetectionConfidencePanel from "./DetectionConfidencePanel";
@@ -209,9 +208,6 @@ export default function PlanetDetailPage({ planet }: Props) {
           setSimToken((t) => t + 1);
         }}
       />
-
-      {/* ── 4. PLANETARY SOUND ───────────────────────────────────────────── */}
-      <PlanetSoundPanel planetName={planet.plName} periodDays={planet.periodDays} />
 
       {/* ── 5. LIGHT CURVE / OBSERVATION DATA ────────────────────────────── */}
       <LightCurveStudio

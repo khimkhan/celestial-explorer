@@ -12,7 +12,6 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import SpaceCanvas from "../components/SpaceCanvas";
-import AmbientSoundBar from "../components/AmbientSoundBar";
 
 function NotFoundComponent() {
   return (
@@ -128,10 +127,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SpaceCanvas />
-      {/* Global ambient frequency track — persists across all pages. */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <AmbientSoundBar />
-      </div>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
