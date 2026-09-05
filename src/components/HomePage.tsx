@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { CatalogPlanet } from '@/lib/planetLore';
 import { classifyPlanet, toTarget } from '@/lib/catalogQuery';
 import LiveMiniOrbit from './LiveMiniOrbit';
-import AmbientSoundBar from './AmbientSoundBar';
+
 import OrbitMap2D from './OrbitMap2D';
 import HowDetectionWorks from './HowDetectionWorks';
 import SearchBar from './SearchBar';
@@ -45,7 +45,7 @@ export default function HomePage({ planets, onSelect }: Props) {
         <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-5xl">
           Explore Worlds Beyond Our Sun
         </h2>
-        <AmbientSoundBar />
+        
       </section>
 
       <section className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
