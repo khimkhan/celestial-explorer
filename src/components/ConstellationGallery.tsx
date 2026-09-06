@@ -338,7 +338,7 @@ function StarOverlay({ star, onClose }: { star: StarInfo | null; onClose: () => 
       </p>
       <h3 className="text-base font-semibold tracking-tight">{shown.name}</h3>
       <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
-        in {shown.constellation}
+        {shown.designation ? `${shown.designation} · ` : ""}in {shown.constellation}
       </p>
 
       <dl className="space-y-1.5 text-xs">
@@ -354,15 +354,34 @@ function StarOverlay({ star, onClose }: { star: StarInfo | null; onClose: () => 
         </div>
         <div className="flex items-center justify-between gap-4">
           <dt className="text-slate-500">Distance</dt>
-          <dd className="font-mono">{shown.distanceLy.toLocaleString()} ly</dd>
+          <dd className="font-mono">
+            {shown.distanceLy == null ? "—" : `${shown.distanceLy.toLocaleString()} ly`}
+          </dd>
         </div>
         <div className="flex items-center justify-between gap-4">
           <dt className="text-slate-500">Apparent magnitude</dt>
           <dd className="font-mono">{shown.magnitude.toFixed(2)}</dd>
         </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-slate-500">Absolute magnitude</dt>
+          <dd className="font-mono">
+            {shown.absMagnitude == null ? "—" : shown.absMagnitude.toFixed(2)}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-slate-500">Catalogue ID</dt>
+          <dd className="font-mono">
+            {shown.hd ? `HD ${shown.hd}` : shown.hip ? `HIP ${shown.hip}` : "—"}
+          </dd>
+        </div>
       </dl>
 
-      <p className="mt-3 border-t border-slate-700/60 pt-2 font-mono text-[9px] uppercase tracking-[0.25em] text-slate-500">
+      <p className="mt-2 text-[11px] leading-relaxed text-slate-500">{shown.spectralNote}</p>
+
+      <p className="mt-3 border-t border-slate-700/60 pt-2 font-mono text-[9px] uppercase tracking-[0.22em] text-slate-500">
+        Data: HYG v3.8 (Hipparcos · Yale BSC · Gliese)
+      </p>
+      <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-slate-600">
         Click empty space to release target
       </p>
     </aside>
