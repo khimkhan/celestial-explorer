@@ -19,75 +19,43 @@ function toVec(raDeg: number, decDeg: number, r = SHELL): THREE.Vector3 {
   );
 }
 
-// ── Star identity / catalog derivation ───────────────────────────────────────
-
-const GREEK = [
-  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
-  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω",
-];
-
-/** Spectral classes from hottest to coolest, with representative colours. */
-const SPECTRAL: { type: string; color: string }[] = [
-  { type: "B2 V", color: "#aabfff" },
-  { type: "A0 V", color: "#cad8ff" },
-  { type: "A7 IV", color: "#dbe4ff" },
-  { type: "F2 V", color: "#f8f7ff" },
-  { type: "F8 V", color: "#fff4e8" },
-  { type: "G2 V", color: "#ffedbe" },
-  { type: "G8 III", color: "#ffe2a8" },
-  { type: "K0 III", color: "#ffd2a1" },
-  { type: "K5 III", color: "#ffb86c" },
-  { type: "M2 III", color: "#ff9a62" },
-];
+// ── Star identity — real catalogue data (HYG v3.8 cross-match) ───────────────
 
 export interface StarInfo {
   abbr: string;
   index: number;
   name: string;
+  designation: string;
   constellation: string;
   spectralType: string;
+  spectralNote: string;
   spectralColor: string;
-  distanceLy: number;
+  distanceLy: number | null;
   magnitude: number;
+  absMagnitude: number | null;
+  hd: string | null;
+  hip: string | null;
   position: THREE.Vector3;
 }
 
-/** Stable 32-bit hash so every star keeps the same identity across renders. */
-function hashStar(ra: number, dec: number): number {
-  let h = 2166136261;
-  const s = `${ra.toFixed(4)}:${dec.toFixed(4)}`;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 function buildStars(constellation: Constellation): StarInfo[] {
-  // Bayer-style designation: brightest star gets α, next β, …
-  const ranked = constellation.chart.stars
-    .map(([ra, dec, mag], index) => ({ ra: ra!, dec: dec!, mag: mag!, index }))
-    .sort((a, b) => a.mag - b.mag);
-
-  return ranked.map((s, rank) => {
-    const h = hashStar(s.ra, s.dec);
-    const spec = SPECTRAL[h % SPECTRAL.length]!;
-    // Bright, hot stars tend to read as nearer; add deterministic jitter.
-    const distanceLy = Math.round(
-      30 + ((h >>> 8) % 1970) * (0.35 + s.mag / 6) + (h % 97) / 10,
-    );
-    const designation =
-      rank < GREEK.length ? GREEK[rank] : `HD ${4000 + ((h >>> 4) % 90000)}`;
+  return constellation.chart.stars.map(([ra, dec, mag], index) => {
+    const rec = lookupStar(constellation.abbr, index);
     return {
       abbr: constellation.abbr,
-      index: s.index,
-      name: `${designation} ${constellation.name.slice(0, 3)}`,
+      index,
+      name: rec?.name ?? `${constellation.name} star ${index + 1}`,
+      designation: rec?.designation ?? "",
       constellation: constellation.name,
-      spectralType: spec.type,
-      spectralColor: spec.color,
-      distanceLy,
-      magnitude: s.mag,
-      position: toVec(s.ra, s.dec),
+      spectralType: rec?.spect ?? "—",
+      spectralNote: spectralDescription(rec?.spect),
+      spectralColor: spectralColor(rec?.spect),
+      distanceLy: rec?.distanceLy ?? null,
+      magnitude: rec?.mag ?? mag!,
+      absMagnitude: rec?.absmag ?? null,
+      hd: rec?.hd ?? null,
+      hip: rec?.hip ?? null,
+      position: toVec(ra!, dec!),
     };
   });
 }
