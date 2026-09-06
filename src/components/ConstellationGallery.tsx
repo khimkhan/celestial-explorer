@@ -5,6 +5,7 @@ import * as THREE from "three";
 import SpaceEnvironment from "./space/SpaceEnvironment";
 import { makeStarSprite } from "./space/spaceTextures";
 import { CONSTELLATIONS, type Constellation } from "@/lib/constellations";
+import { lookupStar, spectralColor, spectralDescription } from "@/lib/starCatalog";
 
 /** Radius of the celestial shell the constellations are painted on. */
 const SHELL = 260;
