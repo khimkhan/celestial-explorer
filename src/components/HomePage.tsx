@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import type { CatalogPlanet } from '@/lib/planetLore';
 import { classifyPlanet, toTarget } from '@/lib/catalogQuery';
+import { CONSTELLATION_BY_ABBR } from '@/lib/constellations';
 import LiveMiniOrbit from './LiveMiniOrbit';
+
 
 import OrbitMap2D from './OrbitMap2D';
 import HowDetectionWorks from './HowDetectionWorks';
@@ -40,13 +42,24 @@ export default function HomePage({ planets, onSelect }: Props) {
       <section className="py-6 text-center sm:py-10">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/15 px-3 py-1 font-mono text-xs text-violet-300">
           <Sparkles className="h-3 w-3" />
-          {planets.length} confirmed worlds · NASA Exoplanet Archive dataset
+          Exoplanet detection &amp; simulation system
         </div>
-        <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-5xl">
+        <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-5xl">
           Explore Worlds Beyond Our Sun
         </h2>
-        
+        <p className="mx-auto max-w-2xl text-sm text-slate-400 sm:text-base">
+          Explore worlds beyond our Sun through observation, transit detection and orbital
+          simulation.
+        </p>
+
+        <dl className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
+          <Status label="Observatory status" value="● Online" tone="text-emerald-300" />
+          <Status label="NASA archive objects" value={String(planets.length)} tone="text-white" />
+          <Status label="Detection method" value="Transit photometry" tone="text-cyan-300" />
+          <Status label="Simulation" value="Active" tone="text-violet-300" />
+        </dl>
       </section>
+
 
       <section className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -120,23 +133,56 @@ function PlanetCard({
     >
       <div className="relative flex h-56 items-center justify-center overflow-hidden bg-gradient-to-b from-slate-950 to-slate-900">
         <LiveMiniOrbit target={toTarget(planet)} size={220} />
+        <span className="absolute left-3 top-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-emerald-300">
+          NASA-confirmed world
+        </span>
         <div className="absolute bottom-3 right-3 flex items-center gap-1">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
           <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400/70">Live</span>
         </div>
       </div>
 
-      <div className="border-t border-slate-800 p-4">
+      <div className="border-t border-slate-800 p-4 text-left">
         <h3 className="text-lg font-bold text-white transition-colors group-hover:text-violet-300">
           {planet.plName}
         </h3>
-        <p className="font-mono text-xs text-slate-500">
-          {classifyPlanet(planet.radiusEarth)} ·{' '}
-          {planet.periodDays < 1
-            ? `${(planet.periodDays * 24).toFixed(1)} h`
-            : `${planet.periodDays.toFixed(2)} d`}
-        </p>
+        <dl className="mt-2 space-y-1 font-mono text-[11px]">
+          <Row label="Host star" value={planet.hostName} />
+          <Row
+            label="Constellation"
+            value={CONSTELLATION_BY_ABBR.get(planet.constellation)?.name ?? planet.constellation}
+          />
+          <Row label="Planet type" value={classifyPlanet(planet.radiusEarth)} />
+          <Row
+            label="Orbital period"
+            value={
+              planet.periodDays < 1
+                ? `${(planet.periodDays * 24).toFixed(1)} h`
+                : `${planet.periodDays.toFixed(2)} d`
+            }
+          />
+          <Row label="Detection method" value={planet.discoveryMethod} />
+        </dl>
       </div>
     </button>
   );
 }
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="uppercase tracking-wider text-slate-500">{label}</dt>
+      <dd className="truncate text-slate-300">{value}</dd>
+    </div>
+  );
+}
+
+function Status({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-left backdrop-blur-md">
+      <dt className="font-mono text-[9px] uppercase tracking-wider text-slate-500">{label}</dt>
+      <dd className={`font-mono text-xs ${tone}`}>{value}</dd>
+    </div>
+  );
+}
+

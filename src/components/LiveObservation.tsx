@@ -63,14 +63,17 @@ export default function LiveObservation({ planet, height = 220 }: Props) {
 
   // Simulated observing clock: 1 orbital period ≈ 6 s at 1×.
   useEffect(() => {
+    (window as any).__gate = { playing: sim.playing, reduced, mounted };
     if (!sim.playing || reduced) {
       cancelAnimationFrame(raf.current);
       last.current = 0;
       return;
     }
+    (window as any).__gate = { playing: sim.playing, reduced };
     const daysPerSecond = model.periodDays / 6;
 
     const step = (now: number) => {
+      (window as any).__obs = ((window as any).__obs ?? 0) + 1;
       if (!last.current) last.current = now;
       const dt = Math.min(80, now - last.current) / 1000;
       last.current = now;
@@ -104,6 +107,7 @@ export default function LiveObservation({ planet, height = 220 }: Props) {
       }
       wasInTransit.current = inside;
 
+      (window as any).__obs = ((window as any).__obs ?? 0) + 1;
       setSamples(buffer.current);
       setSimDays(t);
       raf.current = requestAnimationFrame(step);
