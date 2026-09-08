@@ -16,6 +16,8 @@ import { setSimSettings, useSimSettings } from "@/lib/simSettings";
 import OrbitalAnimation from "./OrbitalAnimation";
 import SimulationControls from "./SimulationControls";
 import LightCurveStudio from "./LightCurveStudio";
+import LiveObservation from "./LiveObservation";
+
 import DetectionPipeline from "./DetectionPipeline";
 import DetectionConfidencePanel from "./DetectionConfidencePanel";
 import OrbitalParametersPanel from "./OrbitalParametersPanel";
@@ -208,6 +210,19 @@ export default function PlanetDetailPage({ planet }: Props) {
           setSimToken((t) => t + 1);
         }}
       />
+
+      {/* ── 4. LIVE OBSERVATION (orbit + photometry on one clock) ────────── */}
+      <section className={`${GLASS} border-cyan-500/20 p-5`}>
+        <header className="mb-3 flex flex-wrap items-center gap-2">
+          <Activity className="h-4 w-4 text-cyan-400" />
+          <h2 className="text-sm font-semibold tracking-tight text-white">Live observation</h2>
+          <span className="rounded-full border border-slate-700 bg-slate-950/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-slate-400">
+            Transit and light-curve dip are synchronised
+          </span>
+        </header>
+        <LiveObservation planet={planet} />
+      </section>
+
 
       {/* ── 5. LIGHT CURVE / OBSERVATION DATA ────────────────────────────── */}
       <LightCurveStudio

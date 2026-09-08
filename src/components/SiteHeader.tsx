@@ -1,5 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { Telescope, Sparkles, History } from 'lucide-react';
+import { Telescope, Sparkles, History, Radar, FlaskConical, BookOpen, LayoutGrid } from 'lucide-react';
+
+const NAV = [
+  { to: '/', label: 'Observatory', icon: LayoutGrid, exact: true, accent: 'hover:border-violet-500/40', active: 'border-violet-500/40 text-violet-200' },
+  { to: '/mission-control', label: 'Mission Control', icon: Radar, accent: 'hover:border-cyan-500/40', active: 'border-cyan-500/40 text-cyan-200' },
+  { to: '/detection-lab', label: 'Detection Lab', icon: FlaskConical, accent: 'hover:border-emerald-500/40', active: 'border-emerald-500/40 text-emerald-200' },
+  { to: '/constellations', label: '3D Star Map', icon: Sparkles, accent: 'hover:border-cyan-500/40', active: 'border-cyan-500/40 text-cyan-200' },
+  { to: '/timeline', label: 'Timeline', icon: History, accent: 'hover:border-amber-500/40', active: 'border-amber-500/40 text-amber-200' },
+  { to: '/methodology', label: 'Methodology', icon: BookOpen, accent: 'hover:border-slate-500/60', active: 'border-slate-500/60 text-white' },
+] as const;
 
 export default function SiteHeader() {
   return (
@@ -18,31 +27,19 @@ export default function SiteHeader() {
         </div>
       </Link>
 
-      <nav className="flex items-center gap-2 font-mono text-xs">
-        <Link
-          to="/"
-          activeOptions={{ exact: true }}
-          className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-300 backdrop-blur-md transition-colors hover:border-violet-500/40 hover:text-white"
-          activeProps={{ className: 'border-violet-500/40 text-violet-200' }}
-        >
-          Catalog
-        </Link>
-        <Link
-          to="/timeline"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-300 backdrop-blur-md transition-colors hover:border-amber-500/40 hover:text-white"
-          activeProps={{ className: 'border-amber-500/40 text-amber-200' }}
-        >
-          <History className="h-3.5 w-3.5" />
-          Timeline
-        </Link>
-        <Link
-          to="/constellations"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-300 backdrop-blur-md transition-colors hover:border-cyan-500/40 hover:text-white"
-          activeProps={{ className: 'border-cyan-500/40 text-cyan-200' }}
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Constellations
-        </Link>
+      <nav aria-label="Main" className="flex flex-wrap items-center gap-2 font-mono text-xs">
+        {NAV.map(({ to, label, icon: Icon, accent, active, ...rest }) => (
+          <Link
+            key={to}
+            to={to}
+            {...('exact' in rest && rest.exact ? { activeOptions: { exact: true } } : {})}
+            className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-300 backdrop-blur-md transition-colors ${accent} hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400`}
+            activeProps={{ className: active }}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+          </Link>
+        ))}
       </nav>
     </header>
   );
