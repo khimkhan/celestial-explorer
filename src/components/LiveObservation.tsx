@@ -68,8 +68,8 @@ export default function LiveObservation({ planet, height = 220 }: Props) {
       last.current = 0;
       return;
     }
-    (window as any).__gate = { playing: sim.playing, reduced };
     const daysPerSecond = model.periodDays / 6;
+
 
     const step = (now: number) => {
       if (!last.current) last.current = now;
